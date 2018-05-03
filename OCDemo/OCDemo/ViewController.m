@@ -123,7 +123,11 @@
     [_tableView removeObserver:self forKeyPath:@"contentOffset"];
     NSLog(@"456");
     NSLog(@"789");
+
     NSLog(@"qqqqqqq");
+     
+    NSLog(@"qqqqqqqqqqq");
+
 }
 
 - (void)didReceiveMemoryWarning {
