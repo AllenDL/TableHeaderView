@@ -121,7 +121,7 @@
 {
     NSLog(@"123");
     NSLog(@"456");
-    
+    NSLog(@"789");
     
     
     [_tableView removeObserver:self forKeyPath:@"contentOffset"];
