@@ -121,6 +121,7 @@
 {
     NSLog(@"123");
     [_tableView removeObserver:self forKeyPath:@"contentOffset"];
+    NSLog(@"456");
 }
 
 - (void)didReceiveMemoryWarning {
