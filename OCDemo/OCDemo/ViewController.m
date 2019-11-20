@@ -9,11 +9,13 @@
 #import "ViewController.h"
 #import "DPTableView.h" 
 #import "UIView+Extension.h"
+#import "MJRefresh.h"
 
 @interface ViewController ()<DPTableViewDelegate,UITableViewDataSource,UIScrollViewDelegate>
 
 
 @property (nonatomic, strong) DPTableView *tableView;
+@property (nonatomic, strong) DPTableView *tableView1;
 @property (nonatomic, strong) UIView *headerView;
 @property (nonatomic, strong) UIView *btnView;
 @property (nonatomic, strong) UIScrollView *mainScrollView;
@@ -25,10 +27,13 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+    self.view.backgroundColor = [UIColor clearColor];
     _mainScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
+    _mainScrollView.backgroundColor = [UIColor clearColor];
     _mainScrollView.delegate = self;
     [self.view addSubview:_mainScrollView];
+    _mainScrollView.contentSize = CGSizeMake(self.view.frame.size.width*2, self.view.frame.size.height);
+    _mainScrollView.pagingEnabled = YES;
     
     _headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 100)];
     _headerView.backgroundColor =[UIColor redColor];
@@ -50,35 +55,55 @@
     [_headerView addSubview:_btnView];
     [self.view addSubview:_headerView];
 
-    _tableView = [[DPTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height) style:UITableViewStylePlain];
+    _tableView = [[DPTableView alloc] initWithFrame:CGRectMake(0, 20, self.view.frame.size.width, self.view.frame.size.height) style:UITableViewStylePlain];
     _tableView.delegate = self;
     _tableView.dataSource = self;
     _tableView.backgroundColor = [UIColor lightGrayColor];
-    _tableView.tableHeaderView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, _headerView.height)];
+    _tableView.scrollIndicatorInsets = UIEdgeInsetsMake(80, 0, 0, 0);
+    _tableView.contentInset = UIEdgeInsetsMake(80, 0, 0, 0);
+//    _tableView.tableHeaderView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, _headerView.height)];
     [_tableView addObserver:self
                         forKeyPath:@"contentOffset"
                            options:NSKeyValueObservingOptionNew
                            context:nil];
     [_mainScrollView addSubview:_tableView];
+    _tableView1 = [[DPTableView alloc] initWithFrame:CGRectMake(self.view.frame.size.width, 0, self.view.frame.size.width, self.view.frame.size.height) style:UITableViewStylePlain];
+    _tableView1.delegate = self;
+    _tableView1.dataSource = self;
+    _tableView1.backgroundColor = [UIColor lightGrayColor];
+    _tableView1.scrollIndicatorInsets = UIEdgeInsetsMake(80, 0, 0, 0);
+    _tableView1.contentInset = UIEdgeInsetsMake(80, 0, 0, 0);
+//    _tableView1.tableHeaderView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, _headerView.height)];
+    [_tableView1 addObserver:self
+                 forKeyPath:@"contentOffset"
+                    options:NSKeyValueObservingOptionNew
+                    context:nil];
+    [_mainScrollView addSubview:_tableView1];
 }
 
 - (void)tapBtn:(UIButton *)sender
 {
-    NSLog(@"%ld",sender.tag);
-    NSLog(@"123");
+    
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSLog(@"456");
     return 40.0f;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     return 20;
-    
-    
+}
+
+- (void)headerRefreshStart:(DPTableView *)tableView
+{
+    [tableView headerRefreshEnd];
+}
+
+- (void)footerRefreshStart:(DPTableView *)tableView
+{
+    [tableView footerRefreshEnd];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -97,24 +122,56 @@
         CGFloat headerViewScrollStopY = 50;
         CGFloat btnViewScrollStopY = 25;
         UITableView *tableView = object;
-        CGFloat contentOffsetY = tableView.contentOffset.y;
-        NSLog(@"%f",contentOffsetY);
+        CGFloat contentOffsetY = tableView.contentOffset.y+80;
+//        NSLog(@"=======%f",contentOffsetY);
         if (contentOffsetY >= btnViewScrollStopY && contentOffsetY <=headerViewScrollStopY) {
-            self.headerView.y = - tableView.contentOffset.y;
-            self.btnView.y = tableView.contentOffset.y;
+            self.headerView.y = - contentOffsetY;
+            self.btnView.y = contentOffsetY;
         } else if (contentOffsetY <= btnViewScrollStopY){
             self.btnView.y = btnViewScrollStopY;
         } else if (contentOffsetY >= headerViewScrollStopY) {
             self.btnView.y = headerViewScrollStopY;
         }
+        
+//        if (contentOffsetY <= -80) {
+//            self.headerView.y = 0;
+//        } else if (contentOffsetY>=-80+btnViewScrollStopY) {
+//            //- tableView.contentOffset.y;
+//            self.btnView.y = btnViewScrollStopY;
+//            self.headerView.y = -80-contentOffsetY;
+//        } else if (contentOffsetY >-80) {
+//            self.headerView.y = -80-contentOffsetY;
+//        }
+
+//        if (point.y<=-200) {// 下拉
+//            [UIView animateWithDuration:0.25 animations:^{
+//                self.headerView.mj_origin = CGPointMake(0, 0);
+//            }];
+//        } else if (point.y >= 0) {
+//            [UIView animateWithDuration:0.25 animations:^{
+//                self.headerView.mj_origin = CGPointMake(0, -200);
+//            }];
+//        } else {
+//            self.headerView.mj_origin = CGPointMake(0, -200 - point.y);
+//        }
+        
+        if (contentOffsetY < 0) {
+            self.headerView.y = 0;
+            return;
+        }
         // 滑动没有超过停止点,头部视图跟随移动
         if (contentOffsetY < headerViewScrollStopY) {
-            self.headerView.y = - tableView.contentOffset.y;
-            
+            self.headerView.y = - contentOffsetY;
         } else {
             self.headerView.y = - headerViewScrollStopY;
         }
+        
+       
     }
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    [_tableView1 setContentOffset:CGPointMake(0, _tableView.contentOffset.y)];
 }
 
 - (void)dealloc
